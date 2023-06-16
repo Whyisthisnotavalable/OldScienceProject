@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tides</title>
+<style>
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #000000;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #000000;
+}
+</style>
+</head>
+<body style="overflow: hidden; font-family: monospace;">
+<canvas id="canvas" height="577.33"; width="1280" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: black;"></canvas>
+<div id="text" style="top: 25vh; left: 20vw; color: white; background-color: black; position: absolute; z-index: 1; width: 15em; height: 20em; overflow: auto;"></div>
+<div id="pause" style="color: white; position: absolute; top: 0; left: 0; background-color: #FFFFFF44; z-index: 2; visibility: hidden; padding-top: 50vh; padding-left: 50vw; padding-right: 50vw; padding-bottom: 50vh; font-family: monospace;"><div style="position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; transform: translate(calc(-50% - 125px), calc(-50% - 75px)); font-size: 100px;">PAUSED</div><div style="width: 200px; color: white; position: absolute; top: 50%; left: calc(50% - 65px);">(Press P to unpause)</div></div>
+</body>
+<script>
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+let textArea = document.getElementById("text");
+let cycle = 0;
+canvas.style.width = window.innerWidth;
+canvas.style.height = window.innerHeight;
+let pointerX = 0;
+let pointerY = 0;
+let paused = false;
+const vocabulary = {
+	GravitationalPull: "Gravitational Pull: Objects with more mass have more gravity. Gravity also gets weaker with distance. So, the closer objects are to each other, the stronger their gravitational pull is. Earth's gravity comes from all its mass. All its mass makes a combined gravitational pull on all the mass in your body.",
+	HighTide: "High Tide: The state of the tide when at its highest level.",
+	LowTide: "Low Tide: The state of the tide when at its lowest level.",
+	SpringTide: "Spring Tide: A tide just after a new or full moon, when there is the greatest difference between high and low water.",
+	NeapTide: "Neap Tide: A tide just after the first or third quarters of the moon when there is least difference between high and low water.",
+	Orbit: "Orbit: The curved path of a celestial object or spacecraft around a star, planet, or moon, especially a periodic elliptical revolution.",
+	Gravity: "Gravity: The force that attracts a body toward the center of the earth, or toward any other physical body having mass.",
+	TidalBulge: "Tidal Bulge: Gravity and inertia act in opposition on the Earth's oceans, creating tidal bulges on opposite sides of the planet. On the “near” side of the Earth (the side facing the moon), the gravitational force of the moon pulls the ocean's waters toward it, creating one bulge.",
+	Tides: "Tides: The alternate rising and falling of the sea, usually twice in each lunar day at a particular place, due to the attraction of the moon and sun: the changing patterns of the tides · they were driven on by wind and tide"
+}
+const vocabulary2 = ["GravitationalPull", "HighTide", "LowTide", "SpringTide", "NeapTide", "Orbit", "Gravity", "TidalBulge", "Tides"];
+const questions = ["What are tides?", "What causes high and low tide?", "What is the difference between high tide and low tide?", "What is the difference between spring tide and neap tide?", "What is the relationship between the sun, moon, and earth with respect to tides?", "How does Earth's rotation affect tides?", "Why can we predict tides?", "Why are tides important and what are some ways it impacts humans?"]
+const answers = [
+	"Tides are one of the most reliable phenomena in the world. As the sun rises in the east and the stars come out at night, we are confident that the ocean waters will regularly rise and fall along our shores. Tides are very long-period waves that move through the ocean in response to the forces exerted by the moon and sun. Tides originate in the ocean and progress toward the coastlines where they appear as the regular rise and fall of the sea surface. When the highest part, or crest, of the wave reaches a particular location, high tide occurs; low tide corresponds to the lowest part of the wave, or its trough. The difference in height between the high tide and the low tide is called the tidal range.",
+	"Tides are created by the gravitational force of the moon on the Earth’s oceans. The moon’s gravity pulls on the water in the oceans, causing it to bulge out in the direction of the moon. At the same time, the Earth’s gravity pulls on the water, trying to keep it in place.",
+	"Basically, tides are very long-period waves that move through the oceans in response to the forces exerted by the moon and sun. Tides originate in the oceans and progress toward the coastlines where they appear as the regular rise and fall of the sea surface. When the highest part, or crest of the wave reaches a particular location, high tide occurs; low tide corresponds to the lowest part of the wave, or its trough. The difference in height between the high tide and the low tide is called the tidal range.",
+	"Tides are long-period waves that roll around the planet as the ocean is pulled back and forth by the gravitational pull of the moon and the sun as these bodies interact with the Earth in their monthly and yearly orbits. During full or new moons—which occur when the Earth, sun, and moon are nearly in alignment—average tidal ranges are slightly larger. This occurs twice each month. The moon appears new (dark) when it is directly between the Earth and the sun. The moon appears full when the Earth is between the moon and the sun. In both cases, the gravitational pull of the sun is added to the gravitational pull of the moon on Earth, causing the oceans to bulge a bit more than usual. This means that high tides are a little higher and low tides are a little lower than average. These are called spring tides, a common historical term that has nothing to do with the season of spring. Rather, the term is derived from the concept of the tide springing forth. Spring tides occur twice each lunar month all year long, without regard to the season. Seven days after a spring tide, the sun and moon are at right angles to each other. When this happens, the bulge of the ocean caused by the sun partially cancels out the bulge of the ocean caused by the moon. This produces moderate tides known as neap tides, meaning that high tides are a little lower and low tides are a little higher than average. Neap tides occur during the first and third quarter moon, when the moon appears half full.",
+	"The moon is a major influence on the Earth’s tides, but the sun also generates considerable tidal forces. Solar tides are about half as large as lunar tides and are expressed as a variation of lunar tidal patterns, not as a separate set of tides. When the sun, moon, and Earth are in alignment (at the time of the new or full moon), the solar tide has an additive effect on the lunar tide, creating extra-high high tides, and very low, low tides—both commonly called spring tides. One week later, when the sun and moon are at right angles to each other, the solar tide partially cancels out the lunar tide and produces moderate tides known as neap tides. During each lunar month, two sets of spring tides and two sets of neap tides occur (Sumich, J.L., 1996).",
+	"The bulge on the far side of the Earth is caused by inertia. The water moving away from the moon resists the gravitational forces that attempt to pull it in the opposite direction. Because the gravitational pull of the moon is weaker on the far side of the Earth, inertia wins, the ocean bulges out and high tide occurs.",
+	"Tides can be predicted far in advance and with a high degree of accuracy. Tides are forced by the orbital relationships between the Earth, the moon and the Sun. These relationships are very well understood and the position of the celestial bodies can be forecast very accurately into the future. However, as sea levels rise, the periodicity and range of the tide will be altered due to different bathymetry (underwater depth) and topography (the physical features of an area). Therefore predicting tides a long way into the future could be less accurate. Storm surges are short term sea level changes caused by the weather (winds and atmospheric pressure) that also affect tidal predictability. Storm surges can only be forecast with the same time horizon as weather forecasting (about two to five days).",
+	"Tidal data is also critical to fishing, recreational boating, and surfing. Commercial and recreational fishermen use their knowledge of the tides and tidal currents to help them improve their catches. Depending on the species and water depth in a particular area, fish may concentrate during ebb or flood tidal currents."
+]
+
+window.addEventListener("mousemove", (event) => {
+	pointerX = event.clientX;
+	pointerY = event.clientY;
+})
+window.addEventListener("click", (event) => {
+	if(Math.sqrt((canvas.width / 1.5-event.clientX)*(canvas.width / 1.5-event.clientX) + (canvas.height / 2-event.clientY)*(canvas.height / 2-event.clientY)) < 25) { //canvas.width / 1.5, canvas.height / 2, 25
+		const textConfirm = Math.floor(questions.length * Math.random());
+		let text = prompt(questions[textConfirm]);
+		if (text != null) {
+			textArea.innerHTML = "Question: " + questions[textConfirm] + "<br>" + "Answer: " + answers[textConfirm] + "<br> Your answer: " + text;
+		} else {
+			textArea.innerHTML = '<div style="color: red; padding: 15px; background-color: #111111; cursor: wait"><em>' + "Apparently you canceled" + "</em></div>";
+			throw new ReferenceError("User has failed to answer");
+		}
+	}
+})
+window.addEventListener("keydown", (event) => { //paused
+	if(event.key == "p" && paused == false) {
+		paused = true;
+		document.getElementById("pause").style.visibility = "visible";
+	} else if(event.key == "p" && paused == true) {
+		paused = false;
+		document.getElementById("pause").style.visibility = "hidden";
+		animate();
+	}
+})
+function animate() { 
+	canvas.height = window.innerHeight;
+	canvas.width = window.innerWidth;
+	if(paused == false) {
+		window.requestAnimationFrame(animate);
+	}
+	cycle += 0.5;
+	let x1 = canvas.width / 1.5 + 180 * Math.sin(cycle/Math.PI/60);
+	let y1 = canvas.height / 2 + 180 * Math.cos(cycle/Math.PI/60);
+	//let x2 = canvas.width / 2 + 80 * Math.sin(cycle/Math.PI/4+Math.PI);
+	//let y2 = canvas.height / 2 + 80 * Math.cos(cycle/Math.PI/4+Math.PI);
+	//clear canvas
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+	//rotation arc around earth, not accurate, but too bad //rendered first so that the moon draws over
+	ctx.save()
+	ctx.shadowColor = "white";
+	ctx.shadowOffsetX = 0;
+	ctx.shadowOffsetY = 0;
+	ctx.shadowBlur = 10;
+	ctx.beginPath()
+	ctx.strokeStyle = "white";
+	ctx.translate(window.innerWidth / 1.5, window.innerHeight / 2);
+	ctx.arc(0, 0, canvas.height / 3.2, 0 , 2 * Math.PI)
+	ctx.setLineDash([125 * Math.random(), 125 * Math.random()]);
+	ctx.stroke();
+	ctx.setLineDash([]);
+	ctx.restore()
+	//moon
+	ctx.save()
+	//ctx.rotate(Math.atan2((window.innerHeight / 2) - Math.cos(cycle / 500) * 1000, (window.innerWidth / 2) - Math.sin(cycle / 500) * 1000));// cannot return value of the x and y coordinates
+	ctx.beginPath()
+	ctx.strokeStyle = "gray";
+	ctx.fillStyle = "lightgray";
+	ctx.arc(x1, y1, 10, Math.PI / 2, Math.PI * 1.5);
+	if(Math.sqrt((x1-pointerX)*(x1-pointerX) + (y1-pointerY)*(y1-pointerY)) < 10) {
+		textArea.innerHTML = vocabulary[vocabulary2[Math.floor(vocabulary2.length * Math.random())]];
+		//console.log(Math.floor(vocabulary2.length * Math.random()))
+	}
+	ctx.font = "16px serif";
+	ctx.fillText("Moon", x1 - 16, y1 - 20);
+	ctx.fill()
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.fillStyle = "darkgray";
+	ctx.arc(x1, y1, 10, Math.PI * 1.5, Math.PI / 2);
+	ctx.fill();
+	ctx.stroke();
+	ctx.restore()
+	//sun
+	ctx.save()
+	ctx.shadowColor = "white";
+	ctx.shadowOffsetX = 0;
+	ctx.shadowOffsetY = 0;
+	ctx.shadowBlur = 10;
+	ctx.beginPath()
+	ctx.strokeStyle = "transparent";
+	ctx.fillStyle = "#FFDD00";
+	ctx.arc(-10000, canvas.height / 2, 10050, 0, Math.PI * 2)
+	ctx.font = "20px serif";
+	ctx.fillText("Sun", 75, canvas.height / 2);
+	ctx.fill()
+	ctx.stroke()
+	ctx.restore()
+	//wave
+	ctx.save()
+	//ctx.rotate(Math.atan2(canvas.height / 2 - y1, canvas.width / 1.5 - x1))
+	ctx.beginPath()
+	ctx.strokeStyle = "transparent";
+	ctx.fillStyle = "aqua";
+	ctx.ellipse(canvas.width / 1.5, canvas.height / 2, 25, 30, Math.PI / 2 + Math.atan2(canvas.height / 2 - y1, canvas.width / 1.5 - x1), 0, Math.PI * 2)
+	//ctx.quadraticCurveTo(x1, y1, canvas.width / 1.5, canvas.height / 2);
+	ctx.stroke();
+	ctx.fill()
+	ctx.restore()
+	//earth
+	ctx.save()
+	ctx.shadowColor = "midnightblue";
+	ctx.shadowOffsetX = 0;
+	ctx.shadowOffsetY = 0;
+	ctx.shadowBlur = 10;
+	ctx.beginPath()
+	ctx.fillStyle = "#00FFDD"
+	ctx.strokeStyle = "transparent";
+	ctx.arc(canvas.width / 1.5, canvas.height / 2, 25, 0, 2 * Math.PI)
+	ctx.font = "20px serif";
+	ctx.fillText("Earth", canvas.width / 1.5 - 21, canvas.height / 2 - 40);
+	ctx.fill();
+	ctx.stroke()
+	ctx.restore()
+}
+animate();
+</script>
+</html>
